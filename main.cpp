@@ -203,10 +203,12 @@ void ReadEvent ()
         fDTEvent -> AddPSDModule(0);
         fDTEvent -> GetLastPSDModule() -> SetPosition(25. * cos(vetoModuleAngle [iVeto] * TMath::Pi()),
                                                       25. * sin(vetoModuleAngle [iVeto] * TMath::Pi()),
-                                                      2000.);
-        psdModuleEnergy = veto->GetADChadron(iVeto);
+                                                      2600.);
+        psdModuleEnergy = veto->GetADChadron(iVeto)+veto->GetADCphoton(iVeto);
+        //psdModuleEnergy = veto->GetADChadron(iVeto);
         if (psdModuleEnergy < 0.) psdModuleEnergy = 0;
         fDTEvent -> GetLastPSDModule() -> SetEnergy(psdModuleEnergy);
+	//cout << iVeto << "\t" << psdModuleEnergy << endl;
     }
 
     ring = (T49RingRoot *)event->GetRing();
@@ -235,9 +237,11 @@ void ReadEvent ()
         fDTEvent -> GetPSDModule (PSDModuleId) -> SetPosition (-ring_middle_radius [iRing%10] * sin (((iRing/10)+0.5) * TMath::Pi() / 12.),
                                                                 ring_middle_radius [iRing%10] * cos (((iRing/10)+0.5) * TMath::Pi() / 12.),
                                                                 1800);                                                              
-        psdModuleEnergy = ring->GetADChadron(iRing);
+        //psdModuleEnergy = ring->GetADChadron(iRing);
+        psdModuleEnergy = ring->GetADChadron(iRing)+ring->GetADCphoton(iRing);
         if (psdModuleEnergy < 0.) psdModuleEnergy = 0;
         fDTEvent -> GetPSDModule (PSDModuleId) -> SetEnergy(psdModuleEnergy);
+	//cout << iRing << "\t" << psdModuleEnergy << endl;
     }
 
     particles = (TObjArray*) event -> GetPrimaryParticles();
@@ -269,10 +273,11 @@ void ReadEvent ()
         fDTEvent -> GetLastVertexTrack() -> SetdEdx(particle->GetTmeanCharge(2), EnumTPC::kMTPC);
         fDTEvent -> GetLastVertexTrack() -> SetdEdx(particle->GetTmeanCharge(), EnumTPC::kTPCAll);
 
-        fDTEvent -> GetLastVertexTrack() -> SetNumberOfdEdxClusters(particle-> GetNDedxPoint(0), EnumTPC::kVTPC1);
-        fDTEvent -> GetLastVertexTrack() -> SetNumberOfdEdxClusters(particle-> GetNDedxPoint(1), EnumTPC::kVTPC2);
-        fDTEvent -> GetLastVertexTrack() -> SetNumberOfdEdxClusters(particle-> GetNDedxPoint(2), EnumTPC::kMTPC);
-        fDTEvent -> GetLastVertexTrack() -> SetNumberOfdEdxClusters(particle-> GetNDedxPoint(), EnumTPC::kTPCAll);
+//cout << "dEdx = " << particle->GetTmeanCharge(2) << endl; 
+        fDTEvent -> GetLastVertexTrack() -> SetNumberOfdEdxClusters(0.001 * particle-> GetNDedxPoint(0), EnumTPC::kVTPC1);
+        fDTEvent -> GetLastVertexTrack() -> SetNumberOfdEdxClusters(0.001 * particle-> GetNDedxPoint(1), EnumTPC::kVTPC2);
+        fDTEvent -> GetLastVertexTrack() -> SetNumberOfdEdxClusters(0.001 * particle-> GetNDedxPoint(2), EnumTPC::kMTPC);
+        fDTEvent -> GetLastVertexTrack() -> SetNumberOfdEdxClusters(0.001 * particle-> GetNDedxPoint(), EnumTPC::kTPCAll);
 
         fDTEvent -> AddTOFHit();
         fDTEvent -> GetLastTOFHit() -> SetPathLength( particle->GetTofPathl() );
@@ -315,7 +320,6 @@ void ReadMCEvent ()
     MCvertex = (T49VertexMCRoot*) (MCevent -> GetVertices () -> At (0));
     fDTEvent -> SetMCVertexPosition (MCvertex->GetX(), MCvertex->GetY(), MCvertex->GetZ());
     fDTEvent -> SetPsdEnergy(event -> GetEveto());
-//    fDTEvent -> SetPsdEnergy(999);
     fDTEvent -> SetRunId( run -> GetRunNumber () );
 
     MCparticles = (TObjArray*) MCevent -> GetMCParticles();
